@@ -1,3 +1,5 @@
+from telegram import Update, Bot
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import os
 import httpx
 import random
@@ -5,11 +7,9 @@ import time
 import uuid
 import asyncio
 from loguru import logger
-from telegram import Update, Bot
-from telegram.ext import Dispatcher, CommandHandler
-from telegram.ext.dispatcher import run_async
-from telegram.utils.request import Request
-from http.server import BaseHTTPRequestHandler
+
+# Your existing code here...
+
 
 # Disable logging for httpx
 httpx_log = logger.bind(name="httpx").level("WARNING")
