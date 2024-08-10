@@ -154,4 +154,58 @@ async def generate_keys(update: Update, context: CallbackContext) -> None:
         update.message.reply_text("Usage: /generate [game_id] [key_count]\nExample: /generate 1 5")
         return
 
-    proxies = await load_pro
+    proxies = await load_proxies(context.user_data.get('proxies_file', 'proxy.txt'))
+    keys, game_name = await main(game_choice, key_count, proxies)
+
+    if keys:
+        response = f"Generated {len(keys)} key(s) for {game_name}:\n" + "\n".join(keys)
+    else:
+        response = "No keys were generated."
+    update.message.reply_text(response)
+
+def set_proxies(update: Update, context: CallbackContext) -> None:
+    if context.args:
+        proxies_file = context.args[0]
+        context.user_data['proxies_file'] = proxies_file
+        update.message.reply_text(f"Proxies file set to: {proxies_file}")
+    else:
+        update.message.reply_text("Usage: /proxies [file_path]")
+
+class VercelHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(length).decode('utf-8')
+        update = Update.de_json(post_data, bot)
+        dispatcher.process_update(update)
+        self.send_response(200)
+        self.end_headers()
+
+# Setup the bot
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Use environment variable for the token
+bot = Bot(token=TOKEN)
+request = Request(con_pool_size=8)
+dispatcher = Dispatcher(bot, None, workers=4, use_context=True)
+
+# Add command handlers
+dispatcher.add_handler(CommandHandler("start", start))
+dispatcher.add_handler(CommandHandler("games", list_games))
+dispatcher.add_handler(CommandHandler("generate", generate_keys))
+dispatcher.add_handler(CommandHandler("proxies", set_proxies))
+
+# Define the webhook URL
+WEBHOOK_URL = f"https://{os.getenv('VERCEL_URL')}/api"
+
+# Set webhook
+async def set_webhook():
+    await bot.set_webhook(WEBHOOK_URL)
+
+if __name__ == "__main__":
+    set_webhook()
+
+# Vercel requires a `do_GET` method, even if it’s just a ping
+class PingHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"pong")
+
