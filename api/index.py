@@ -181,7 +181,7 @@ class VercelHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 # Setup the bot
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Use environment variable for the token
+TOKEN = os.getenv("7259089235:AAG6smQH-LIueA3YhOAVkCyLyI1Nqqjpi4E")  # Use environment variable for the token
 bot = Bot(token=TOKEN)
 request = Request(con_pool_size=8)
 dispatcher = Dispatcher(bot, None, workers=4, use_context=True)
